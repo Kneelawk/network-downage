@@ -1,6 +1,7 @@
 extern crate chrono;
 extern crate ctrlc;
 extern crate curl;
+extern crate dirs;
 
 use chrono::Local;
 use chrono::DateTime;
@@ -17,10 +18,16 @@ use std::{
         atomic::{AtomicBool, Ordering},
         mpsc,
     },
+    fs::File,
+    io::{
+        BufWriter,
+        Write,
+    },
 };
 use curl::Error;
 
 const URL: &str = "https://www.rust-lang.org/";
+const FILENAME_TIME_FORMAT: &str = "%F_%H-%M-%S";
 const TIME_FORMAT: &str = "%F_%T";
 
 enum InternalMessage {
@@ -39,6 +46,14 @@ enum InternalMessage {
 }
 
 fn main() {
+    let filename = format!("network-log-{}.csv", Local::now().format(FILENAME_TIME_FORMAT));
+    let file_path = dirs::home_dir().unwrap().join(".network-downage").join(filename);
+    let file_path_display = file_path.display();
+    let file_handle = File::create(&file_path).expect("Unable to create log file");
+    let mut file_buf = BufWriter::new(file_handle);
+
+    println!("Writing to: {}", file_path_display);
+
     println!("Use ctrl+c to quit");
 
     let running = Arc::new(AtomicBool::new(true));
@@ -90,9 +105,13 @@ fn main() {
             }
             InternalMessage::DownloadComplete { start_time, duration } => {
                 println!("{}, {}", start_time.format(TIME_FORMAT), duration.as_millis());
+                writeln!(&mut file_buf, "{}, {}", start_time.format(TIME_FORMAT), duration.as_millis()).unwrap_or_else(|_err| println!("Unable to write to log"));
+                file_buf.flush().unwrap_or_else(|_err| println!("Unable to flush to log"));
             }
             InternalMessage::DownloadErr { start_time, duration, err } => {
                 println!("{}, {}, {}", start_time.format(TIME_FORMAT), duration.as_millis(), err);
+                writeln!(&mut file_buf, "{}, {}, {}", start_time.format(TIME_FORMAT), duration.as_millis(), err).unwrap_or_else(|_err| println!("Unable to write to log"));
+                file_buf.flush().unwrap_or_else(|_err| println!("Unable to flush to log"));
             }
             InternalMessage::Terminate => {
                 println!();
@@ -105,9 +124,6 @@ fn main() {
             }
         }
     }
-
-    // close main thread sender because we no-longer need to make clones of it
-    drop(tx);
 
     // wait for all the other senders to close
     for signal in &rx {
