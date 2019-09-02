@@ -26,7 +26,7 @@ use std::{
 };
 use curl::Error;
 
-const URL: &str = "https://www.rust-lang.org/";
+const URL: &str = "https://www.google.com/";
 const FILENAME_TIME_FORMAT: &str = "%F_%H-%M-%S";
 const TIME_FORMAT: &str = "%F_%T";
 
