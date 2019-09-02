@@ -104,13 +104,13 @@ fn main() {
                 });
             }
             InternalMessage::DownloadComplete { start_time, duration } => {
-                println!("{}, {}", start_time.format(TIME_FORMAT), duration.as_millis());
-                writeln!(&mut file_buf, "{}, {}", start_time.format(TIME_FORMAT), duration.as_millis()).unwrap_or_else(|_err| println!("Unable to write to log"));
+                println!("{},{}", start_time.format(TIME_FORMAT), duration.as_millis());
+                writeln!(&mut file_buf, "{},{}", start_time.format(TIME_FORMAT), duration.as_millis()).unwrap_or_else(|_err| println!("Unable to write to log"));
                 file_buf.flush().unwrap_or_else(|_err| println!("Unable to flush to log"));
             }
             InternalMessage::DownloadErr { start_time, duration, err } => {
-                println!("{}, {}, {}", start_time.format(TIME_FORMAT), duration.as_millis(), err);
-                writeln!(&mut file_buf, "{}, {}, {}", start_time.format(TIME_FORMAT), duration.as_millis(), err).unwrap_or_else(|_err| println!("Unable to write to log"));
+                println!("{},{},{}", start_time.format(TIME_FORMAT), duration.as_millis(), err);
+                writeln!(&mut file_buf, "{},{},{}", start_time.format(TIME_FORMAT), duration.as_millis(), err).unwrap_or_else(|_err| println!("Unable to write to log"));
                 file_buf.flush().unwrap_or_else(|_err| println!("Unable to flush to log"));
             }
             InternalMessage::Terminate => {
