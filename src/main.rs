@@ -18,6 +18,7 @@ use std::{
         atomic::{AtomicBool, Ordering},
         mpsc,
     },
+    fs,
     fs::File,
     io::{
         BufWriter,
@@ -47,7 +48,14 @@ enum InternalMessage {
 
 fn main() {
     let filename = format!("network-log-{}.csv", Local::now().format(FILENAME_TIME_FORMAT));
-    let file_path = dirs::home_dir().unwrap().join(".network-downage").join(filename);
+
+    // create missing .network-downage dir
+    let log_dir = dirs::home_dir().unwrap().join(".network-downage");
+    if !log_dir.exists() {
+        fs::create_dir_all(&log_dir).unwrap();
+    }
+
+    let file_path = log_dir.join(filename);
     let file_path_display = file_path.display();
     let file_handle = File::create(&file_path).expect("Unable to create log file");
     let mut file_buf = BufWriter::new(file_handle);
